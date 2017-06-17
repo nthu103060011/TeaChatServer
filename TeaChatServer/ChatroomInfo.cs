@@ -34,13 +34,5 @@ namespace TeaChatServer
             }
         }
 
-        //List<ChatroomInfo> list = new List<ChatroomInfo>();
-        //ChatroomInfo info = new ChatroomInfo();
-        //info.memberList.Add(new ChatroomInfo.Member(socket, 3));
-        //info.memberList.Add(new ChatroomInfo.Member(socketA, 0));
-        //info.memberList.Add(new ChatroomInfo.Member(socketB, 0));
-        //list.Add(info);
-
-        //list[6].setChatroomIndex(socketA, 4);
     }
 }

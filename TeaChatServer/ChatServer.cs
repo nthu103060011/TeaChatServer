@@ -138,10 +138,14 @@ namespace TeaChatServer
                     }
                     //paket.changeChatroomIndex(2);
                     break;
+                case Packet.Commands.OpenConferneceCall:
+                    socket.
+                    break;
                 case Packet.Commands.LogOut:
                     Console.WriteLine(userList[clientList.IndexOf(socket)] + "µn¥X");
                     userList.RemoveAt(clientList.IndexOf(socket));
                     clientList.Remove(socket);
+                    sendUserList();
                     socket.close();
                     break;
             }
