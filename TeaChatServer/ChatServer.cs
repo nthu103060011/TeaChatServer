@@ -131,13 +131,13 @@ namespace TeaChatServer
                     //paket.changeChatroomIndex(2);
                     break;
                 case Packet.Commands.OpenConferenceCall:
-                    //傳給host
+                    //send to host
                     int clientIndex = packet.getChatroomIndex();
                     Packet packet2 = new Packet();
                     packet2.MakeConfCallOnPacket(clientIndex);
                     packet2.changeChatroomIndex(clientIndex);
-
-                    //傳給peer
+                    socket.send(packet2.getPacket());
+                    //send to peer
                     Packet packet3 = new Packet();
                     int serverIndex = findChatroomIndex(socket, clientIndex);
                     Console.WriteLine("serverIndex " + serverIndex);
@@ -156,9 +156,12 @@ namespace TeaChatServer
                     break;
                 case Packet.Commands.ParticipateConferenceCall:
                     Packet packet4 = new Packet();
-                    packet.MakeConfCallOnPacket(packet.getChatroomIndex());
+                    packet4.MakeConfCallOnPacket(packet.getChatroomIndex());
                     socket.send(packet4.getPacket());
                     break; 
+
+                //case Packet.Commands.
+                
                 case Packet.Commands.LogOut:
                     Console.WriteLine(userList[clientList.IndexOf(socket)] + "登出");
                     userList.RemoveAt(clientList.IndexOf(socket));
