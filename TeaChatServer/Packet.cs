@@ -32,7 +32,7 @@ namespace TeaChatServer
             TextMessage,    // int chatroomIndex, string fromWho, string text
             BackgroundImage,// int chatroomIndex, string filename, byte[] data
             File,           // int chatroomIndex, string filename, byte[] data
-            OpenConferneceCall, // client-to-server first then server-to-client
+            OpenConferenceCall, // client-to-server first then server-to-client
             ParticipateConferenceCall, // client-to-server
             ConferenceCallOn, // server-to-client
             AudioData,      // char room number, data
@@ -251,7 +251,7 @@ namespace TeaChatServer
             byte[] data = Encoding.UTF8.GetBytes(json);
             byte[] dataSize = BitConverter.GetBytes(data.Length);
             Array.Copy(dataSize, 0, packet, 2, 4);
-            Array.Copy(data, 0, packet, 6, Math.Min(8186, data.Length)); // TODO: 分割封包
+            Array.Copy(data, 0, packet, 6, Math.Min(8186, data.Length));
         }
 
         public void makePacketEraseAll(int chatroomIndex)
@@ -289,39 +289,45 @@ namespace TeaChatServer
             Array.Copy(data, 0, packet, 6, data.Length);
         }
 
-        public void makePacketBackgroundImage(int chatroomIndex, string filename, byte[] data)
+        public void makePacketBackgroundImage(int chatroomIndex, string filename, int serialNumber, byte[] data, int dataSize)
         {
             packet.Initialize();
             packet[0] = (byte)Commands.BackgroundImage;
             packet[1] = (byte)chatroomIndex;
-            byte[] dataSize = BitConverter.GetBytes(data.Length);
-            Array.Copy(dataSize, 0, packet, 2, 4);
+            Array.Copy(BitConverter.GetBytes(dataSize), 0, packet, 2, 4);
             byte[] filenameByte = Encoding.UTF8.GetBytes(filename);
             Array.Copy(filenameByte, 0, packet, 6, filenameByte.Length);
-            Array.Copy(data, 0, packet, 74, Math.Min(8118, data.Length)); // TODO: 分割封包
+            Array.Copy(BitConverter.GetBytes(serialNumber), 0, packet, 70, 4);
+            Array.Copy(data, 0, packet, 74, Math.Min(8118, dataSize));
         }
 
-        public void makePacketFile(int chatroomIndex, string filename, byte[] data)
+        public void makePacketFile(int chatroomIndex, string filename, int serialNumber, byte[] data, int dataSize)
         {
             packet.Initialize();
             packet[0] = (byte)Commands.File;
             packet[1] = (byte)chatroomIndex;
-            byte[] dataSize = BitConverter.GetBytes(data.Length);
-            Array.Copy(dataSize, 0, packet, 2, 4);
+            Array.Copy(BitConverter.GetBytes(dataSize), 0, packet, 2, 4);
             byte[] filenameByte = Encoding.UTF8.GetBytes(filename);
             Array.Copy(filenameByte, 0, packet, 6, filenameByte.Length);
-            Array.Copy(data, 0, packet, 74, Math.Min(8118, data.Length)); // TODO: 分割封包
+            Array.Copy(BitConverter.GetBytes(serialNumber), 0, packet, 70, 4);
+            Array.Copy(data, 0, packet, 74, Math.Min(8118, dataSize));
         }
 
         public void MakeOpenConfCallPakcet(int chat_room_num)
         {
-            this.packet[0] = (byte)Commands.OpenConferneceCall;
+            this.packet[0] = (byte)Commands.OpenConferenceCall;
             this.packet[1] = (byte)chat_room_num;
         }
 
         public void MakePartConfCallPacket(int chat_room_num)
         {
             this.packet[0] = (byte)Commands.ParticipateConferenceCall;
+            this.packet[1] = (byte)chat_room_num;
+        }
+
+        public void MakeConfCallOnPacket(int chat_room_num)
+        {
+            this.packet[0] = (byte)Commands.ConferenceCallOn;
             this.packet[1] = (byte)chat_room_num;
         }
 

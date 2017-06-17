@@ -111,19 +111,11 @@ namespace TeaChatServer
                 case Packet.Commands.BackgroundImage:
                 case Packet.Commands.File:
                     int chatroomIndex = packet.getChatroomIndex();
-                    int findIndex = 0;
                     
-                    for (int i=0; i<chatroomList.Count; i++)
-                    {
-                        for (int j=0; j<chatroomList[i].memberList.Count; j++)
-                        {
-                            if (socket == chatroomList[i].memberList[j].socket && chatroomIndex == chatroomList[i].memberList[j].chatroomIndex)
-                            {
-                                findIndex = i;
-                                Console.WriteLine("chatroomindex " + i);
-                            }
-                        }
-                    }
+
+                    int findIndex = findChatroomIndex(socket, chatroomIndex);
+                    Console.WriteLine("findIndex " + findIndex);
+                   
                     for (int i =0; i< chatroomList[findIndex].memberList.Count; i++)
                     {
                         ChatSocket sock = chatroomList[findIndex].memberList[i].socket;
@@ -138,8 +130,26 @@ namespace TeaChatServer
                     }
                     //paket.changeChatroomIndex(2);
                     break;
-                case Packet.Commands.OpenConferneceCall:
-                    socket.
+                case Packet.Commands.OpenConferenceCall:
+                    int clientIndex = packet.getChatroomIndex();
+                    Packet packet2 = new Packet();
+                    packet2.MakeConfCallOnPacket(clientIndex);
+                    int serverIndex = findChatroomIndex(socket, clientIndex);
+                    Console.WriteLine("serverIndex " + serverIndex);
+                    for (int i = 0; i < chatroomList[serverIndex].memberList.Count; i++)
+                    {
+                        ChatSocket sock = chatroomList[serverIndex].memberList[i].socket;
+                        int index = chatroomList[serverIndex].memberList[i].chatroomIndex;
+
+                        if (sock != socket)
+                        {
+                            packet2.MakeOpenConfCallPakcet(index);
+                            sock.send(packet2.getPacket());
+                        }
+                    }
+                    break;
+                case Packet.Commands.ParticipateConferenceCall:
+                    packet.MakeConfCallOnPacket(packet.getChatroomIndex());
                     break;
                 case Packet.Commands.LogOut:
                     Console.WriteLine(userList[clientList.IndexOf(socket)] + "µn¥X");
@@ -149,6 +159,21 @@ namespace TeaChatServer
                     socket.close();
                     break;
             }
+        }
+        public int findChatroomIndex(ChatSocket socket , int index)
+        {
+            int findIndex = 0;
+            for (int i = 0; i < chatroomList.Count; i++)
+            {
+                for (int j = 0; j < chatroomList[i].memberList.Count; j++)
+                {
+                    if (socket == chatroomList[i].memberList[j].socket && index == chatroomList[i].memberList[j].chatroomIndex)
+                    {
+                        findIndex = i;
+                    }
+                }
+            }
+            return findIndex;
         }
         public ChatSocket getSocketByName(string name)
         {
