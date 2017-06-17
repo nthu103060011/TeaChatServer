@@ -29,8 +29,8 @@ namespace TeaChatServer
                 if (m.socket.Equals(socket))
                 {
                     m.chatroomIndex = index;
+                    break;
                 }
-                break;
             }
         }
 

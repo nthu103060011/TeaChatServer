@@ -105,8 +105,38 @@ namespace TeaChatServer
                   //  break;
                 
                 case Packet.Commands.TextMessage:
+                case Packet.Commands.AddStroke:
+                case Packet.Commands.EraseAll:
+                case Packet.Commands.AddTextBox:
+                case Packet.Commands.BackgroundImage:
+                case Packet.Commands.File:
                     int chatroomIndex = packet.getChatroomIndex();
-                    //packet.changeChatroomIndex(2);
+                    int findIndex = 0;
+                    
+                    for (int i=0; i<chatroomList.Count; i++)
+                    {
+                        for (int j=0; j<chatroomList[i].memberList.Count; j++)
+                        {
+                            if (socket == chatroomList[i].memberList[j].socket && chatroomIndex == chatroomList[i].memberList[j].chatroomIndex)
+                            {
+                                findIndex = i;
+                                Console.WriteLine("chatroomindex " + i);
+                            }
+                        }
+                    }
+                    for (int i =0; i< chatroomList[findIndex].memberList.Count; i++)
+                    {
+                        ChatSocket sock = chatroomList[findIndex].memberList[i].socket;
+                        int index = chatroomList[findIndex].memberList[i].chatroomIndex;
+                        
+                        if (sock != socket)
+                        {
+                            Console.WriteLine("change index " + index);
+                            packet.changeChatroomIndex(index);
+                            sock.send(packet.getPacket());
+                        }
+                    }
+                    //paket.changeChatroomIndex(2);
                     break;
                 case Packet.Commands.LogOut:
                     Console.WriteLine(userList[clientList.IndexOf(socket)] + "µn¥X");
