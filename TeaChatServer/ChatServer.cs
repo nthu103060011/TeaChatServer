@@ -131,9 +131,14 @@ namespace TeaChatServer
                     //paket.changeChatroomIndex(2);
                     break;
                 case Packet.Commands.OpenConferenceCall:
+                    //傳給host
                     int clientIndex = packet.getChatroomIndex();
                     Packet packet2 = new Packet();
                     packet2.MakeConfCallOnPacket(clientIndex);
+                    packet2.changeChatroomIndex(clientIndex);
+
+                    //傳給peer
+                    Packet packet3 = new Packet();
                     int serverIndex = findChatroomIndex(socket, clientIndex);
                     Console.WriteLine("serverIndex " + serverIndex);
                     for (int i = 0; i < chatroomList[serverIndex].memberList.Count; i++)
@@ -143,14 +148,17 @@ namespace TeaChatServer
 
                         if (sock != socket)
                         {
-                            packet2.MakeOpenConfCallPakcet(index);
-                            sock.send(packet2.getPacket());
+                            packet3.MakeOpenConfCallPakcet(index);
+                            packet3.changeChatroomIndex(index);
+                            sock.send(packet3.getPacket());
                         }
                     }
                     break;
                 case Packet.Commands.ParticipateConferenceCall:
+                    Packet packet4 = new Packet();
                     packet.MakeConfCallOnPacket(packet.getChatroomIndex());
-                    break;
+                    socket.send(packet4.getPacket());
+                    break; 
                 case Packet.Commands.LogOut:
                     Console.WriteLine(userList[clientList.IndexOf(socket)] + "登出");
                     userList.RemoveAt(clientList.IndexOf(socket));
