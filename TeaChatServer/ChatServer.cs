@@ -101,9 +101,8 @@ namespace TeaChatServer
                     int chatroomindex = packet.getRegisterChatroomData();
                     chatroomList[chatroomindex].setChatroomIndex(socket, socketindex);
                     break;
-               // case Packet.Commands.LeaveChatroom:
-                  //  break;
-                
+
+                case Packet.Commands.LeaveChatroom:                
                 case Packet.Commands.TextMessage:
                 case Packet.Commands.AddStroke:
                 case Packet.Commands.EraseAll:
