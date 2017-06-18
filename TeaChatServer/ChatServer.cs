@@ -111,6 +111,7 @@ namespace TeaChatServer
                 case Packet.Commands.AddTextBox:
                 case Packet.Commands.BackgroundImage:
                 case Packet.Commands.File:
+                case Packet.Commands.AudioData:
                     int chatroomIndex = packet.getChatroomIndex();
                     
 
