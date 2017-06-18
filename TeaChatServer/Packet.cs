@@ -12,7 +12,7 @@ namespace TeaChatServer
     {
         byte[] packet;
 
-        public static readonly int PACKET_MAX_SIZE = 8192;
+        public static readonly int PACKET_MAX_SIZE = 2048;
         public static readonly int PACKET_HEADER_SIZE = 6;
         public static readonly int PACKET_MAX_BODY_SIZE = PACKET_MAX_SIZE - PACKET_HEADER_SIZE;
 
@@ -160,7 +160,7 @@ namespace TeaChatServer
 
         public byte[] getFileData()
         {
-            int dataSize = Math.Min(8118, getDataSize());
+            int dataSize = Math.Min(1974, getDataSize());
             byte[] data = new byte[dataSize];
             Array.Copy(packet, 74, data, 0, dataSize);
             return data;
@@ -246,7 +246,7 @@ namespace TeaChatServer
             byte[] data = Encoding.UTF8.GetBytes(json);
             byte[] dataSize = BitConverter.GetBytes(data.Length);
             Array.Copy(dataSize, 0, packet, 2, 4);
-            Array.Copy(data, 0, packet, 6, Math.Min(8186, data.Length));
+            Array.Copy(data, 0, packet, 6, Math.Min(2042, data.Length));
         }
 
         public void makePacketEraseAll(int chatroomIndex)
@@ -293,7 +293,7 @@ namespace TeaChatServer
             byte[] filenameByte = Encoding.UTF8.GetBytes(filename);
             Array.Copy(filenameByte, 0, packet, 6, filenameByte.Length);
             Array.Copy(BitConverter.GetBytes(serialNumber), 0, packet, 70, 4);
-            Array.Copy(data, 0, packet, 74, Math.Min(8118, dataSize));
+            Array.Copy(data, 0, packet, 74, Math.Min(1974, dataSize));
         }
 
         public void makePacketFile(int chatroomIndex, string filename, int serialNumber, byte[] data, int dataSize)
@@ -305,7 +305,7 @@ namespace TeaChatServer
             byte[] filenameByte = Encoding.UTF8.GetBytes(filename);
             Array.Copy(filenameByte, 0, packet, 6, filenameByte.Length);
             Array.Copy(BitConverter.GetBytes(serialNumber), 0, packet, 70, 4);
-            Array.Copy(data, 0, packet, 74, Math.Min(8118, dataSize));
+            Array.Copy(data, 0, packet, 74, Math.Min(1974, dataSize));
         }
 
         #region conferecen call handshake packet creation

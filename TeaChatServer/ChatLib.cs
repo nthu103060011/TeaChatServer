@@ -27,6 +27,7 @@ namespace TeaChatServer
         public StrHandler inHandler;
         public EndPoint remoteEndPoint;
         public bool isDead = false;
+        public static readonly int PACKET_MAX_SIZE = 2048;
 
         public ChatSocket(Socket s)
         {
@@ -39,8 +40,22 @@ namespace TeaChatServer
 
         public byte[] receive()
         {
-            byte[] msg = new byte[8192];
-            socket.Receive(msg);
+            byte[] msg = new byte[PACKET_MAX_SIZE];
+            int bytesRead = socket.Receive(msg);
+            Console.WriteLine("receive " + bytesRead);
+            if (bytesRead != PACKET_MAX_SIZE)
+                Console.WriteLine("first " + bytesRead);
+            while (bytesRead < PACKET_MAX_SIZE)
+            {
+                byte[] tmp = new byte[PACKET_MAX_SIZE];
+                int bytesReadtmp = socket.Receive(tmp);
+                Console.WriteLine(bytesReadtmp);
+                if (bytesRead + bytesReadtmp > PACKET_MAX_SIZE)
+                    return tmp;
+                else
+                    Array.Copy(tmp, 0, msg, bytesRead, bytesReadtmp);
+                bytesRead += bytesReadtmp;
+            }
             return msg;
         }
 
@@ -51,6 +66,7 @@ namespace TeaChatServer
 
         public ChatSocket send(byte[] line)
         {
+            Console.WriteLine("send "+line);
             socket.Send(line);
             return this;
         }
@@ -87,7 +103,8 @@ namespace TeaChatServer
                 while (true)
                 {
                     byte[] line = receive();
-                    inHandler(line, this);
+                    if (line != null)
+                        inHandler(line, this);
                 }
             }
             catch (Exception ex)

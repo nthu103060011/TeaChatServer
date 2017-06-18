@@ -12,6 +12,8 @@ namespace TeaChatServer
         List<ChatSocket> clientList = new List<ChatSocket>();
         List<string> userList = new List<string>();
         List<ChatroomInfo> chatroomList = new List<ChatroomInfo>();
+        List<string> account = new List<string>();
+        List<string> password = new List<string>();
         //ChatroomInfo info;
         
         public static void Main(String[] args)
@@ -113,7 +115,7 @@ namespace TeaChatServer
                     
 
                     int findIndex = findChatroomIndex(socket, chatroomIndex);
-                    Console.WriteLine("findIndex " + findIndex);
+                    //Console.WriteLine("findIndex " + findIndex);
                    
                     for (int i =0; i< chatroomList[findIndex].memberList.Count; i++)
                     {
@@ -122,7 +124,7 @@ namespace TeaChatServer
                         
                         if (sock != socket)
                         {
-                            Console.WriteLine("change index " + index);
+                            //Console.WriteLine("change index " + index);
                             packet.changeChatroomIndex(index);
                             sock.send(packet.getPacket());
                         }
