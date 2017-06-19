@@ -18,7 +18,12 @@ namespace TeaChatServer
 
         public enum Commands
         {
+            RequestUserRegister, // client user register request
+            UserRegisterAccept, // server user register accpet
+            UserRegisterDeny, // server user register deny
             ReportName,     // string username
+            AccountAuthorized, // valid account
+            AccountInvalid, // invalid account
             UpdateUserList, // List<string> onlineUsers
             ChatRequest,    // List<string> chatFriends
             RegisterChatroom,   // int chatroomIndex, int chatroomIndexOnServer
@@ -80,16 +85,24 @@ namespace TeaChatServer
 
         public int GetPacketBody(byte[] buff)
         {
-            return ArrayUtility.CopyByteArray(buff, 0, this.packet, 2, this.getDataSize() + PACKET_HEADER_SIZE);
+            return ArrayUtility.CopyByteArray(buff, 0, this.packet, PACKET_HEADER_SIZE, this.getDataSize() + PACKET_HEADER_SIZE);
         }
 
         #region getPacketData
-        public string getReportNameData()
+        public string[] GetUserRegisterData()
         {
+            return this.getTextMessageData();
+        }
+
+        public string[] getReportNameData()
+        {
+            /*
             int dataSize = getDataSize();
             byte[] data = new byte[dataSize];
             Array.Copy(packet, 6, data, 0, dataSize);
             return Encoding.UTF8.GetString(data);
+            */
+            return this.getTextMessageData();
         }
 
         public List<string> getUpdateUserListData()
@@ -173,15 +186,61 @@ namespace TeaChatServer
         #endregion
 
         #region makePacket
-        public void makePacketReportName(string username)
+
+        public void MakePacketRequestUserRegister(String account, string pwd)
+        {
+            ArrayUtility.ZeroByteArray(this.packet);
+
+            this.makePacketTextMessage(0, account, pwd);
+
+            packet[0] = (byte)Commands.RequestUserRegister;
+            packet[1] = byte.MaxValue;
+        }
+
+        public void MakePacketUserRegisterAccept()
+        {
+            ArrayUtility.ZeroByteArray(this.packet);
+
+            packet[0] = (byte)Commands.UserRegisterAccept;
+            packet[1] = byte.MaxValue;
+        }
+
+        public void MakePacketUserRegisterDeny()
+        {
+            ArrayUtility.ZeroByteArray(this.packet);
+
+            packet[0] = (byte)Commands.UserRegisterDeny;
+            packet[1] = byte.MaxValue;
+        }
+
+        public void makePacketReportName(string username, string pwd)
         {
             packet.Initialize();
+            this.makePacketTextMessage(0, username, pwd);
             packet[0] = (byte)Commands.ReportName;
             packet[1] = byte.MaxValue;
+            /*
             byte[] data = Encoding.UTF8.GetBytes(username);
             byte[] dataSize = BitConverter.GetBytes(data.Length);
             Array.Copy(dataSize, 0, packet, 2, 4);
             Array.Copy(data, 0, packet, 6, data.Length);
+            */
+        }
+
+        public void MakePakcetAccountAuthorized()
+        {
+            ArrayUtility.ZeroByteArray(this.packet);
+
+            packet[0] = (byte)Commands.AccountAuthorized;
+            packet[1] = byte.MaxValue;
+        }
+
+        public void MakePaketAccountInvalid()
+        {
+            ArrayUtility.ZeroByteArray(this.packet);
+
+            packet[0] = (byte)Commands.AccountInvalid;
+            packet[1] = byte.MaxValue;
         }
 
         public void makePacketUpdateUserList(List<string> onlineUsers)

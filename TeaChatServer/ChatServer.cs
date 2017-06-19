@@ -4,16 +4,17 @@ using System.Net.Sockets;
 using System.IO;
 using System.Threading;
 using System.Collections.Generic;
+using Newtonsoft.Json;
 
 namespace TeaChatServer
 {
     public class ChatServer
     {
         List<ChatSocket> clientList = new List<ChatSocket>();
-        List<string> userList = new List<string>();
-        List<ChatroomInfo> chatroomList = new List<ChatroomInfo>();
-        List<string> account = new List<string>();
-        List<string> password = new List<string>();
+        List<string> userList = new List<string>(); 
+        List<ChatroomInfo> chatroomList = new List<ChatroomInfo>(); //server chatroom
+        List<string> accountList = new List<string>(); //register list
+        List<string> passwordList = new List<string>();
         //ChatroomInfo info;
         
         public static void Main(String[] args)
@@ -24,6 +25,10 @@ namespace TeaChatServer
 
         public void run()
         {
+            if (File.Exists("account.json"))
+                accountList = JsonConvert.DeserializeObject<List<string>>(File.ReadAllText("account.json"));
+            if (File.Exists("password.json"))
+                passwordList = JsonConvert.DeserializeObject<List<string>>(File.ReadAllText("password.json"));
             IPEndPoint ipep = new IPEndPoint(IPAddress.Any, ChatSetting.port);
 
             Socket newsock = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
@@ -38,7 +43,7 @@ namespace TeaChatServer
                 ChatSocket client = new ChatSocket(socket);
                 try
                 {
-                    clientList.Add(client);
+                    //clientList.Add(client);
                     client.newListener(processMsgComeIn);
                 }
                 catch
@@ -54,21 +59,78 @@ namespace TeaChatServer
             Packet packet = new Packet(msg);
             switch (packet.getCommand())
             {
+                case Packet.Commands.RequestUserRegister:
+                    string[]  accountName= packet.GetUserRegisterData();
+                    bool sure_reg = false; 
+                    foreach (string reg in accountList)
+                    {
+                        if (reg.Equals(accountName[0]))
+                        {
+                            sure_reg = true;
+                            break;
+                        }
+                    }
+                    if (sure_reg == false)
+                    {
+                        Console.WriteLine(accountName + " 註冊成功");
+                        accountList.Add(accountName[0]);
+                        passwordList.Add(accountName[1]);
+                        File.WriteAllText("account.json", JsonConvert.SerializeObject(accountList));
+                        File.WriteAllText("password.json", JsonConvert.SerializeObject(passwordList));
+                        packet.MakePacketUserRegisterAccept();
+                        socket.send(packet.getPacket());
+                    }
+                    else
+                    {
+                        Console.WriteLine(accountName + " 註冊失敗");
+                        packet.MakePacketUserRegisterDeny();
+                        socket.send(packet.getPacket());
+                    }
+                   
+                    break;
+
                 case Packet.Commands.ReportName:
-                    string name = packet.getReportNameData();
+                    string[] name = packet.getReportNameData();
+                    bool sure = false;
                     Console.WriteLine("收到使用者：" + name);
                     Console.WriteLine(socket.socket.RemoteEndPoint.ToString());
-                    userList.Insert(clientList.IndexOf(socket), name);
-                    sendUserList();
+                    foreach (string account in accountList)
+                    {                              
+                        if (name[0].Equals(account) )
+                        {
+                            int pwd_index = accountList.IndexOf(account);
+                            //Console.WriteLine("index = " + pwd_index);
+                            if (name[1].Equals(passwordList[pwd_index]))
+                            {
+                                sure = true;
+                                Console.WriteLine(name[0] + " 已登入");
+                                packet.MakePakcetAccountAuthorized();
+                                socket.send(packet.getPacket());
+                                clientList.Add(socket);
+                                userList.Insert(clientList.IndexOf(socket), name[0]);
+                                sendUserList();
+                                break;
+                            }
+                            
+                        }
+                        
+                    }
+                    if (sure == false)
+                    {
+                        packet.MakePaketAccountInvalid();
+                        socket.send(packet.getPacket());
+                        //socket.close();
+                    }
+                   
                     break;
 
                 case Packet.Commands.ChatRequest:
-                    Console.WriteLine("enter chatrequest");
+                    //Console.WriteLine("enter chatrequest");
                     ChatroomInfo info = new ChatroomInfo();
                     info.memberList.Add(new ChatroomInfo.Member(socket, packet.getChatroomIndex()));
                     foreach (string user in packet.getChatRequestData())
                     {                      
-                        Console.WriteLine(user);
+                        //Console.WriteLine(user);
                         info.memberList.Add(new ChatroomInfo.Member(getSocketByName(user), -1));                     
                     }
                     chatroomList.Add(info);
@@ -82,7 +144,7 @@ namespace TeaChatServer
                             
                             if (user != getNameBySocket(info.memberList[i].socket))
                             {
-                                Console.WriteLine("sendto" + user + "List" + getNameBySocket(info.memberList[i].socket));
+                                //Console.WriteLine("sendto" + user + "List" + getNameBySocket(info.memberList[i].socket));
                                 sendto.Add(getNameBySocket(info.memberList[i].socket));
                             }
                                 
@@ -98,7 +160,7 @@ namespace TeaChatServer
                     break;
 
                 case Packet.Commands.RegisterChatroom:
-                    Console.WriteLine("enter RegisterChatroom");
+                    //Console.WriteLine("enter RegisterChatroom");
                     int socketindex = packet.getChatroomIndex();
                     int chatroomindex = packet.getRegisterChatroomData();
                     chatroomList[chatroomindex].setChatroomIndex(socket, socketindex);
@@ -142,7 +204,7 @@ namespace TeaChatServer
                     //send to peer
                     Packet packet3 = new Packet();
                     int serverIndex = findChatroomIndex(socket, clientIndex);
-                    Console.WriteLine("serverIndex " + serverIndex);
+                    //Console.WriteLine("serverIndex " + serverIndex);
                     for (int i = 0; i < chatroomList[serverIndex].memberList.Count; i++)
                     {
                         ChatSocket sock = chatroomList[serverIndex].memberList[i].socket;
@@ -166,7 +228,7 @@ namespace TeaChatServer
                 
                 case Packet.Commands.LogOut:
                     Console.WriteLine(userList[clientList.IndexOf(socket)] + "登出");
-                    userList.RemoveAt(clientList.IndexOf(socket));
+                    userList.Remove(getNameBySocket(socket));
                     clientList.Remove(socket);
                     sendUserList();
                     socket.close();
@@ -224,16 +286,6 @@ namespace TeaChatServer
                 clientList[i].send(exceptListByte);
             }
         }
-        public void broadCast(byte[] msg, ChatSocket socket)
-        {
-            Console.WriteLine("廣播訊息給 " + msg+" 線上使用者共"+clientList.Count+"個人!");
-            foreach (ChatSocket client in clientList)
-            {
-				if (!client.isDead && !client.Equals(socket)) {
-					Console.WriteLine("Send to "+client.remoteEndPoint.ToString()+":"+msg);
-					client.send(msg);
-				}
-            }
-        }
+
     }
 }

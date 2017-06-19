@@ -26,7 +26,7 @@ namespace TeaChatServer
         public StreamWriter writer;
         public StrHandler inHandler;
         public EndPoint remoteEndPoint;
-        public bool isDead = false;
+        //public bool isDead = false;
         public static readonly int PACKET_MAX_SIZE = 2048;
 
         public ChatSocket(Socket s)
@@ -42,20 +42,20 @@ namespace TeaChatServer
         {
             byte[] msg = new byte[PACKET_MAX_SIZE];
             int bytesRead = socket.Receive(msg);
-            Console.WriteLine("receive " + bytesRead);
+            //Console.WriteLine("receive " );
             if (bytesRead != PACKET_MAX_SIZE)
-                Console.WriteLine("first " + bytesRead);
-            while (bytesRead < PACKET_MAX_SIZE)
-            {
-                byte[] tmp = new byte[PACKET_MAX_SIZE];
-                int bytesReadtmp = socket.Receive(tmp);
-                Console.WriteLine(bytesReadtmp);
-                if (bytesRead + bytesReadtmp > PACKET_MAX_SIZE)
-                    return tmp;
-                else
-                    Array.Copy(tmp, 0, msg, bytesRead, bytesReadtmp);
-                bytesRead += bytesReadtmp;
-            }
+                Console.WriteLine("receive byte " + bytesRead);
+            //while (bytesRead < PACKET_MAX_SIZE)
+            //{
+            //    byte[] tmp = new byte[PACKET_MAX_SIZE];
+            //    int bytesReadtmp = socket.Receive(tmp);
+            //    Console.WriteLine(bytesReadtmp);
+            //    if (bytesRead + bytesReadtmp > PACKET_MAX_SIZE)
+            //        return tmp;
+            //    else
+            //        Array.Copy(tmp, 0, msg, bytesRead, bytesReadtmp);
+            //    bytesRead += bytesReadtmp;
+            //}
             return msg;
         }
 
@@ -66,7 +66,7 @@ namespace TeaChatServer
 
         public ChatSocket send(byte[] line)
         {
-            Console.WriteLine("send "+line);
+            //Console.WriteLine("send ");
             socket.Send(line);
             return this;
         }
@@ -109,7 +109,8 @@ namespace TeaChatServer
             }
             catch (Exception ex)
             {
-                isDead = true;
+                //isDead = true;
+                socket.Close();
                 Console.WriteLine(ex.Message);
             }
         }
